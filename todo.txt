@@ -1,0 +1,16 @@
+Create:
+  - Ajout snackbar Reussi ou Raté
+Read:
+  génération fichier:
+    - trier ordre alphabétique  OK
+    - Réduire taille photo
+    - Set changement page
+      - verifier changement page 
+      - set height list
+      
+Update:
+  - Ajout snackbar Reussi ou Raté
+Delete:
+  - lister tout et pouvoir supprimer OK
+  - Ajout snackbar Reussi ou Raté
+  - Ajout dialog confirmation

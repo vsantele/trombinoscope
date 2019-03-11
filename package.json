@@ -1,0 +1,74 @@
+{
+  "name": "trombinoscope",
+  "productName": "trombinoscope",
+  "version": "1.0.0",
+  "description": "Gestion de liste de membre",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "keywords": [],
+  "author": "Victor Santelé",
+  "license": "MIT",
+  "config": {
+    "forge": {
+      "packagerConfig": {},
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "trombinoscope"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ],
+      "publishers": [
+        {
+          "name": "@electron-forge/publisher-electron-release-server",
+          "config": {
+            "baseUrl": "https://update.server.com",
+            "username": "admin",
+            " password": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "cropperjs": "^1.5.1",
+    "darkroom": "^2.0.0",
+    "electron-is-dev": "^1.0.1",
+    "electron-log": "^3.0.1",
+    "electron-squirrel-startup": "^1.0.0",
+    "jimp": "^0.6.0",
+    "jquery": "^3.3.1",
+    "materialize-css": "^1.0.0",
+    "nedb": "^1.8.0",
+    "pdfmake": "^0.1.53"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.22",
+    "@electron-forge/maker-deb": "^6.0.0-beta.22",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.22",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.22",
+    "@electron-forge/maker-zip": "^6.0.0-beta.22",
+    "electron": "4.0.5"
+  }
+}

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<head>
+  <link href='css/materialIcons.css' rel='stylesheet'/>
+  <link href="style/cropper.css" rel="stylesheet" />
+  <link href='style/style.css' rel='stylesheet' />
+  <link rel = 'stylesheet' href ="material/material.min.css">
+  <script src='material/material.min.js'></script> 
+  <link rel = 'stylesheet' href ="material/material-select.min.css">
+  <script src='material/material-select.min.js'></script> 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Trombinoscope</title>
+</head>
+
+<body>
+  <div class="parent">
+    <button id="btnAdd" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored ">Ajouter Membre</button>
+    <br> <br>
+    <button data-target='modalList' class='mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored' id='btnList' onclick="showList()">Liste Inscrits</button>
+    <br><br>
+    <form id='tableau'>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
+        <input type="text" value="" name="type" class="mdl-textfield__input" id="type" readonly>
+        <input type="hidden" value="" name="sample6">
+        <i class="mdl-icon-toggle__label material-icons">keyboard_arrow_down</i>
+        <label for="sample6" class="mdl-textfield__label">Type</label>
+        <ul for="sample6" class="mdl-menu mdl-menu--bottom-left mdl-js-menu">
+          <li class="mdl-menu__item" data-val="BY" data-selected="true">Grille</li>
+          <li class="mdl-menu__item" data-val="BR">Liste</li>
+        </ul>
+      </div>
+      <input type='submit' value='Générer' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+    </form>
+    <br>
+  </div>
+    
+    <!-- Dialog Crop Image Input -->
+    <dialog class="mdl-dialog" id="diaImg" style="width: 50em">
+    <h4 class="mdl-dialog__title">Crop Image</h4>
+    <div class="mdl-dialog__content">
+      <div class="cropper" style="margin-left: auto; margin-right: auto">
+        <img src="" id="img" style='max-width: 100%;' />
+      </div>
+    </div>
+    <div class="mdl-dialog__actions">
+      <button id='btnCrop' type="button" class="mdl-button">Crop</button>
+      <button type="button" id="btnCanImg" onclick="closeModalImg()" class="mdl-button close">Annuler</button>
+    </div>
+  </dialog>
+
+  <!-- Dialog List Users Delete -->
+  <dialog class="mdl-dialog" id="diaList" style="width: 40em">
+    <h4 class="mdl-dialog__title">Liste des membres</h4>
+    <div class="mdl-dialog__content">
+      <ul id="listMembers" class="mdl-list">
+
+      </ul>
+    </div>
+    <div class="mdl-dialog__actions">
+      <button type="button" id="btnCanList" onclick="closeModalList()" class="mdl-button close">Annuler</button>
+    </div>
+  </dialog>
+
+  <!-- Dialog User Form -->
+  <dialog class="mdl-dialog" id="diaUser" style="width: 30em">
+    <h4 class="mdl-dialog__title">Edition Membre</h4>
+    <div class="mdl-dialog__content">
+      <form id='formAdd'>
+        <input type="text" id="idUser" readonly style="display: none">
+        <input type='file' id='fileElem' accept='image/*' style="display:none">
+        <button  type='button' id='fileSelect' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Charger Photo</button>
+        <br>
+        <img src='' id='imgOut'> <br>
+        <div class="mdl-textfield mdl-js-textfield">
+          <input type='text' id='name' class="mdl-textfield__input" placeholder="Nom">
+          <!-- <label for='name' class="mdl-textfield__label">Nom</label> -->
+        </div>
+        <br>
+        <div class="mdl-textfield mdl-js-textfield">
+          <textarea type='text' id='com' class="mdl-textfield__input" rows="5" placeholder="Commentaire"></textarea>
+          <!-- <label for='com' class="mdl-textfield__label">Commentaire</label> -->
+        </div>
+        <br>
+        <input type='submit' value='Valider' id="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" disabled>
+        <button type="button" id='cancelAdd' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Annuler</button>
+      </form>
+    </div>
+  </dialog>
+  <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
+      <div class="mdl-snackbar__text"></div>
+      <button class="mdl-snackbar__action" type="button"></button>
+  </div>
+
+  <script>
+    const {
+      dialog, shell
+    } = require('electron').remote
+    const log = require('electron-log')
+    const Cropper = require('cropperjs')
+    const neDB = require('./neDB')
+    const pdf = require('./pdf')
+    var img = document.getElementById("img"), // Btn sélection photo
+      fileElem = document.getElementById("fileElem"), // input photo
+      fileSelect = document.getElementById('fileSelect'), //button charger photo
+      formAdd = document.getElementById('formAdd'), // formulaire photo
+      btnCrop = document.getElementById('btnCrop'), // btn crop photo
+      imgOut = document.getElementById('imgOut'), // image de sortie
+      diaImg = document.getElementById('diaImg'), // dialog crop image
+      diaList = document.getElementById('diaList'), // dialog list users
+      btnCancelAdd = document.getElementById('cancelAdd'),
+      btnList = document.getElementById('btnList'),
+      list = document.getElementById('list'),
+      listMembers = document.getElementById('listMembers'),
+      btnAdd = document.getElementById('btnAdd')
+      diaUser = document.getElementById('diaUser'),
+      snackContainer = document.getElementById('snackbar')
+    var cropper, editId;
+
+    document.getElementById('name').oninput = e => {
+      if (e.target.value !== '') document.getElementById('submit').disabled = false
+      else document.getElementById('submit').disabled = true
+    }
+
+    const sendSnack = (message, timeout, actionHandler, actionText) => {
+      const data = {
+        message
+      }
+      snackContainer.MaterialSnackbar.showSnackbar(data)
+    }
+
+    btnAdd.addEventListener('click', () => {
+      showUserForm('add')
+    })
+
+    const showUserForm = (type, user) => {
+      let valider = document.getElementById('valider')
+      let input = document.createElement('input')
+      if (formAdd.name.value !== '') document.getElementById('submit').disabled = false
+      else document.getElementById('submit').disabled = true
+      if(type === 'add') {
+        formAdd.onsubmit = e => {
+          e.preventDefault()
+          submit(e.target, type)
+        }
+      } else if (type === 'edit') {
+        formAdd.idUser.value = user._id
+        formAdd.name.value = user.name
+        formAdd.com.value = user.comment
+        imgOut.src = user.photo
+        formAdd.onsubmit = e => {
+          e.preventDefault()
+          submit(e.target, type)
+        }
+      }
+      diaUser.showModal()
+    }
+
+    var del = (id) => {
+      neDB.delId(id)
+      createList()
+    }
+
+    const edit = user => {
+      showUserForm('edit', user)
+    }
+
+    fileSelect.addEventListener("click", function (e) {
+      if (fileElem) {
+          fileElem.click();
+      }
+    }, false);
+
+    const createUser = (user) => {
+      let li = document.createElement('li') // ligne
+        li.className = "mdl-list__item"
+
+        let span1 = document.createElement('span')  // contenu primaire gauche (nom + photo)
+          span1.className = "mdl-list__item-primary-content"
+          if (user.photo !== undefined) {
+
+            let img = document.createElement('img') // img
+            img.src = user.photo || ""
+            img.className = 'mdl-list__item-avatar'
+            span1.appendChild(img)
+          } else {
+            let i = document.createElement('i')
+            i.className = "material-icons mdl-list__item-avatar"
+            i.textContent = "person"
+            span1.appendChild(i)
+          }
+          let text = document.createElement('span') // name
+            text.textContent = user.name
+          span1.appendChild(text)
+
+        li.appendChild(span1)
+
+        let span2 = document.createElement('span') // contenu secondaire droite (bouton)
+          span2.className = "mdl-list__item-secondary-action"
+
+          let btnEdit = document.createElement('button') // butron edit
+            btnEdit.className = "mdl-button mdl-js-button mdl-button--icon mdl-button--colored mdl-js-ripple-effect"
+            btnEdit.addEventListener('click', () => {
+              edit(user)
+            })
+            let iEdit = document.createElement('i')
+              iEdit.className = "material-icons"
+              iEdit.textContent = "edit"
+            btnEdit.appendChild(iEdit)
+          span2.appendChild(btnEdit)
+
+          let btnDel = document.createElement('button') // button delete
+            btnDel.className = "mdl-button mdl-js-button mdl-button--icon mdl-button--colored mdl-js-ripple-effect"
+            btnDel.addEventListener('click', () => {
+              del(user._id)
+            })
+            let iDel = document.createElement('i') // icon delete
+              iDel.className = "material-icons"
+              iDel.textContent = "delete"
+            btnDel.appendChild(iDel)
+          span2.appendChild(btnDel)
+        li.appendChild(span2)
+      return li
+    }
+
+    const createList = async () => {
+      try {
+        listMembers.innerHTML = ''
+        const users = await neDB.readAll()
+        await users.forEach(user => {
+          listMembers.appendChild(createUser(user,'read'))
+        })
+      } catch(error) {
+        log.error('Erreur création liste membre')
+        log.error(error)
+        sendSnack("Error Lecture", 2500)
+      }
+    }
+
+    const showList = async () => {
+      try {
+        await createList()
+        await diaList.showModal()
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    var closeModalImg = () => {
+      diaImg.close()
+      if(cropper) {
+        cropper.destroy()
+        cropper = null
+      }
+    }
+
+    var closeModalList = () => {
+      diaList.close()
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+      if (event.target == diaList) {
+        closeModalList()
+      }
+    }
+
+    btnCancelAdd.addEventListener('click', e => {
+      formAdd.name.value = null
+      formAdd.com.value = null
+      imgOut.removeAttribute('src')
+      diaUser.close()
+    })
+
+    fileElem.addEventListener('change', e => {
+      var files = e.target.files
+      var photoResize
+      var done = url => {
+        diaImg.showModal()
+        fileElem.value = ''
+        img.src = url
+        cropper = new Cropper(img, {
+          aspectRatio: 1
+        })
+      }
+      var reader, file, url
+      if (files && files.length > 0) {
+        file = files[0];
+        if (URL) {
+          done(URL.createObjectURL(file))
+        } else if (FileReader) {
+          reader = new FileReader()
+          reader.onload = e => {
+            done(reader.result)
+          }
+          reader.readAsDataURL(file)
+        }
+      }
+    })
+
+    btnCrop.addEventListener('click', () => {
+      var canvas
+      if (cropper) {
+        canvas = cropper.getCroppedCanvas({
+          width: 100,
+          height: 100
+        })
+        imgOut.src = canvas.toDataURL()
+        closeModalImg()
+      }
+    })
+
+    
+
+    let submit = async (form, type) => {
+      const startData = /^data/
+      let photo = startData.test(imgOut.src) ? imgOut : undefined
+      try {
+        if (type === "add") {
+          await neDB.create(form.name.value, photo, form.com.value)
+          await sendSnack('Membre Ajouté', 2500)
+        }
+        else if (type === "edit") {
+          await neDB.update(form.idUser.value,form.name.value, photo, form.com.value)
+          await sendSnack('Membre mis à jour', 2500)
+          diaUser.close()
+        }
+        form.name.value = ''
+        form.com.value = ''
+        imgOut.src = ''
+        if (formAdd.name.value !== '') document.getElementById('submit').disabled = false
+        else document.getElementById('submit').disabled = true
+      } catch (error) {
+        console.error("submit: ", error)
+        log.error('Erreur submit: ')
+        log.error(error)
+        sendSnack("Erreur enregistrement", 2500)
+      }
+    }
+
+    var formPDF = document.getElementById('tableau') // form générate pdf
+    formPDF.addEventListener('submit', async e => { // submit create pdf
+      e.preventDefault()
+      try {
+        const type = e.target.type.value
+        var chemin = dialog.showSaveDialog({
+          title: 'Sauvegarde du Fichier',
+          filters: [{
+            name: 'PDF',
+            extensions: ['pdf']
+          }]
+        })
+        if (chemin) {
+          const users = await neDB.readAll()
+          await pdf(users, type, chemin)
+          shell.showItemInFolder(chemin)
+        }
+      } catch (error) {
+        console.error(error)
+        log.error('Erreur création pdf')
+        log.error(error)
+      }
+    })
+  </script>
+  <script type='text/javascript' src='js/materialize.js'></script>
+  <style>
+    .cropper {
+      height: 25em;
+      width: 25em;
+    }
+  </style>
+</body>
+
+</html>

@@ -1,0 +1,10 @@
+.parent {
+  position: absolute;
+  left: 50%;
+  width: 30em;
+  margin: 2em 0 0 -10em
+}
+
+.button {
+  margin-top: 10em;
+}

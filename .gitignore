@@ -5,5 +5,5 @@ log.txt
 logo.xcf
 yarn-error.log
 src/mydb.db
-data/*
+data
 .env

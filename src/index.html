@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-  
+
 <head>
-  <link href='css/materialIcons.css' rel='stylesheet'/>
+  <link href='material/materialIcons.css' rel='stylesheet' />
   <link href="style/cropper.css" rel="stylesheet" />
   <link href='style/style.css' rel='stylesheet' />
-  <link rel = 'stylesheet' href ="material/material.min.css">
-  <script src='material/material.min.js'></script> 
-  <link rel = 'stylesheet' href ="material/material-select.min.css">
-  <script src='material/material-select.min.js'></script> 
+  <link rel='stylesheet' href="material/material.min.css">
+  <link rel='stylesheet' href="material/material-select.min.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -17,9 +15,11 @@
 
 <body>
   <div class="parent">
-    <button id="btnAdd" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored ">Ajouter Membre</button>
+    <button id="btnAdd" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored ">Ajouter
+      Membre</button>
     <br> <br>
-    <button data-target='modalList' class='mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored' id='btnList' onclick="showList()">Liste Inscrits</button>
+    <button data-target='modalList' class='mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored'
+      id='btnList' onclick="showList()">Liste Inscrits</button>
     <br><br>
     <form id='tableau'>
       <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
@@ -36,9 +36,9 @@
     </form>
     <br>
   </div>
-    
-    <!-- Dialog Crop Image Input -->
-    <dialog class="mdl-dialog" id="diaImg" style="width: 50em">
+
+  <!-- Dialog Crop Image Input -->
+  <dialog class="mdl-dialog" id="diaImg" style="width: 50em">
     <h4 class="mdl-dialog__title">Crop Image</h4>
     <div class="mdl-dialog__content">
       <div class="cropper" style="margin-left: auto; margin-right: auto">
@@ -71,7 +71,8 @@
       <form id='formAdd'>
         <input type="text" id="idUser" readonly style="display: none">
         <input type='file' id='fileElem' accept='image/*' style="display:none">
-        <button  type='button' id='fileSelect' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Charger Photo</button>
+        <button type='button' id='fileSelect' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Charger
+          Photo</button>
         <br>
         <img src='' id='imgOut'> <br>
         <div class="mdl-textfield mdl-js-textfield">
@@ -84,19 +85,21 @@
           <!-- <label for='com' class="mdl-textfield__label">Commentaire</label> -->
         </div>
         <br>
-        <input type='submit' value='Valider' id="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" disabled>
+        <input type='submit' value='Valider' id="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
+          disabled>
         <button type="button" id='cancelAdd' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Annuler</button>
       </form>
     </div>
   </dialog>
   <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
-      <div class="mdl-snackbar__text"></div>
-      <button class="mdl-snackbar__action" type="button"></button>
+    <div class="mdl-snackbar__text"></div>
+    <button class="mdl-snackbar__action" type="button"></button>
   </div>
 
   <script>
     const {
-      dialog, shell
+      dialog,
+      shell
     } = require('electron').remote
     const log = require('electron-log')
     const Cropper = require('cropperjs')
@@ -115,7 +118,7 @@
       list = document.getElementById('list'),
       listMembers = document.getElementById('listMembers'),
       btnAdd = document.getElementById('btnAdd')
-      diaUser = document.getElementById('diaUser'),
+    diaUser = document.getElementById('diaUser'),
       snackContainer = document.getElementById('snackbar')
     var cropper, editId;
 
@@ -140,7 +143,7 @@
       let input = document.createElement('input')
       if (formAdd.name.value !== '') document.getElementById('submit').disabled = false
       else document.getElementById('submit').disabled = true
-      if(type === 'add') {
+      if (type === 'add') {
         formAdd.onsubmit = e => {
           e.preventDefault()
           submit(e.target, type)
@@ -169,59 +172,59 @@
 
     fileSelect.addEventListener("click", function (e) {
       if (fileElem) {
-          fileElem.click();
+        fileElem.click();
       }
     }, false);
 
     const createUser = (user) => {
       let li = document.createElement('li') // ligne
-        li.className = "mdl-list__item"
+      li.className = "mdl-list__item"
 
-        let span1 = document.createElement('span')  // contenu primaire gauche (nom + photo)
-          span1.className = "mdl-list__item-primary-content"
-          if (user.photo !== undefined) {
+      let span1 = document.createElement('span') // contenu primaire gauche (nom + photo)
+      span1.className = "mdl-list__item-primary-content"
+      if (user.photo !== undefined) {
 
-            let img = document.createElement('img') // img
-            img.src = user.photo || ""
-            img.className = 'mdl-list__item-avatar'
-            span1.appendChild(img)
-          } else {
-            let i = document.createElement('i')
-            i.className = "material-icons mdl-list__item-avatar"
-            i.textContent = "person"
-            span1.appendChild(i)
-          }
-          let text = document.createElement('span') // name
-            text.textContent = user.name
-          span1.appendChild(text)
+        let img = document.createElement('img') // img
+        img.src = user.photo || ""
+        img.className = 'mdl-list__item-avatar'
+        span1.appendChild(img)
+      } else {
+        let i = document.createElement('i')
+        i.className = "material-icons mdl-list__item-avatar"
+        i.textContent = "person"
+        span1.appendChild(i)
+      }
+      let text = document.createElement('span') // name
+      text.textContent = user.name
+      span1.appendChild(text)
 
-        li.appendChild(span1)
+      li.appendChild(span1)
 
-        let span2 = document.createElement('span') // contenu secondaire droite (bouton)
-          span2.className = "mdl-list__item-secondary-action"
+      let span2 = document.createElement('span') // contenu secondaire droite (bouton)
+      span2.className = "mdl-list__item-secondary-action"
 
-          let btnEdit = document.createElement('button') // butron edit
-            btnEdit.className = "mdl-button mdl-js-button mdl-button--icon mdl-button--colored mdl-js-ripple-effect"
-            btnEdit.addEventListener('click', () => {
-              edit(user)
-            })
-            let iEdit = document.createElement('i')
-              iEdit.className = "material-icons"
-              iEdit.textContent = "edit"
-            btnEdit.appendChild(iEdit)
-          span2.appendChild(btnEdit)
+      let btnEdit = document.createElement('button') // butron edit
+      btnEdit.className = "mdl-button mdl-js-button mdl-button--icon mdl-button--colored mdl-js-ripple-effect"
+      btnEdit.addEventListener('click', () => {
+        edit(user)
+      })
+      let iEdit = document.createElement('i')
+      iEdit.className = "material-icons"
+      iEdit.textContent = "edit"
+      btnEdit.appendChild(iEdit)
+      span2.appendChild(btnEdit)
 
-          let btnDel = document.createElement('button') // button delete
-            btnDel.className = "mdl-button mdl-js-button mdl-button--icon mdl-button--colored mdl-js-ripple-effect"
-            btnDel.addEventListener('click', () => {
-              del(user._id)
-            })
-            let iDel = document.createElement('i') // icon delete
-              iDel.className = "material-icons"
-              iDel.textContent = "delete"
-            btnDel.appendChild(iDel)
-          span2.appendChild(btnDel)
-        li.appendChild(span2)
+      let btnDel = document.createElement('button') // button delete
+      btnDel.className = "mdl-button mdl-js-button mdl-button--icon mdl-button--colored mdl-js-ripple-effect"
+      btnDel.addEventListener('click', () => {
+        del(user._id)
+      })
+      let iDel = document.createElement('i') // icon delete
+      iDel.className = "material-icons"
+      iDel.textContent = "delete"
+      btnDel.appendChild(iDel)
+      span2.appendChild(btnDel)
+      li.appendChild(span2)
       return li
     }
 
@@ -230,9 +233,9 @@
         listMembers.innerHTML = ''
         const users = await neDB.readAll()
         await users.forEach(user => {
-          listMembers.appendChild(createUser(user,'read'))
+          listMembers.appendChild(createUser(user))
         })
-      } catch(error) {
+      } catch (error) {
         log.error('Erreur création liste membre')
         log.error(error)
         sendSnack("Error Lecture", 2500)
@@ -250,7 +253,7 @@
 
     var closeModalImg = () => {
       diaImg.close()
-      if(cropper) {
+      if (cropper) {
         cropper.destroy()
         cropper = null
       }
@@ -312,7 +315,7 @@
       }
     })
 
-    
+
 
     let submit = async (form, type) => {
       const startData = /^data/
@@ -321,9 +324,8 @@
         if (type === "add") {
           await neDB.create(form.name.value, photo, form.com.value)
           await sendSnack('Membre Ajouté', 2500)
-        }
-        else if (type === "edit") {
-          await neDB.update(form.idUser.value,form.name.value, photo, form.com.value)
+        } else if (type === "edit") {
+          await neDB.update(form.idUser.value, form.name.value, photo, form.com.value)
           await sendSnack('Membre mis à jour', 2500)
           diaUser.close()
         }
@@ -364,7 +366,8 @@
       }
     })
   </script>
-  <script type='text/javascript' src='js/materialize.js'></script>
+  <script src='material/material.min.js'></script>
+  <script src='material/material-select.min.js'></script>
   <style>
     .cropper {
       height: 25em;

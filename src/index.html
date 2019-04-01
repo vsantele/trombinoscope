@@ -28,8 +28,8 @@
         <i class="mdl-icon-toggle__label material-icons">keyboard_arrow_down</i>
         <label for="sample6" class="mdl-textfield__label">Type</label>
         <ul for="sample6" class="mdl-menu mdl-menu--bottom-left mdl-js-menu">
-          <li class="mdl-menu__item" data-val="BY" data-selected="true">Grille</li>
-          <li class="mdl-menu__item" data-val="BR">Liste</li>
+          <li class="mdl-menu__item" data-val="Grilles" data-selected="true">Grille</li>
+          <li class="mdl-menu__item" data-val="Listes">Liste</li>
         </ul>
       </div>
       <input type='submit' value='Générer' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
@@ -39,14 +39,14 @@
 
   <!-- Dialog Crop Image Input -->
   <dialog class="mdl-dialog" id="diaImg" style="width: 50em">
-    <h4 class="mdl-dialog__title">Crop Image</h4>
+    <h4 class="mdl-dialog__title">Découpe de l'image</h4>
     <div class="mdl-dialog__content">
       <div class="cropper" style="margin-left: auto; margin-right: auto">
         <img src="" id="img" style='max-width: 100%;' />
       </div>
     </div>
     <div class="mdl-dialog__actions">
-      <button id='btnCrop' type="button" class="mdl-button">Crop</button>
+      <button id='btnCrop' type="button" class="mdl-button mdl-button--colored mdl-button--raised">Valider</button>
       <button type="button" id="btnCanImg" onclick="closeModalImg()" class="mdl-button close">Annuler</button>
     </div>
   </dialog>
@@ -60,7 +60,7 @@
       </ul>
     </div>
     <div class="mdl-dialog__actions">
-      <button type="button" id="btnCanList" onclick="closeModalList()" class="mdl-button close">Annuler</button>
+      <button type="button" id="btnCanList" onclick="closeModalList()" class="mdl-button close">Fermer</button>
     </div>
   </dialog>
 
@@ -76,9 +76,13 @@
         <br>
         <img src='' id='imgOut'> <br>
         <div class="mdl-textfield mdl-js-textfield">
-          <input type='text' id='name' class="mdl-textfield__input" placeholder="Nom">
+          <input type='text' id='name' class="mdl-textfield__input" placeholder="Nom + Prénom">
           <!-- <label for='name' class="mdl-textfield__label">Nom</label> -->
         </div>
+        <!-- <div class="mdl-textfield mdl-js-textfield">
+          <input type='text' id='pre' class="mdl-textfield__input" placeholder="Prénom">
+          <label for='pre' class="mdl-textfield__label">Prénom</label>
+        </div> -->
         <br>
         <div class="mdl-textfield mdl-js-textfield">
           <textarea type='text' id='com' class="mdl-textfield__input" rows="5" placeholder="Commentaire"></textarea>
@@ -87,7 +91,7 @@
         <br>
         <input type='submit' value='Valider' id="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
           disabled>
-        <button type="button" id='cancelAdd' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Annuler</button>
+        <button type="button" id='cancelAdd' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">Fermer</button>
       </form>
     </div>
   </dialog>
@@ -121,7 +125,6 @@
     diaUser = document.getElementById('diaUser'),
       snackContainer = document.getElementById('snackbar')
     var cropper, editId;
-
     document.getElementById('name').oninput = e => {
       if (e.target.value !== '') document.getElementById('submit').disabled = false
       else document.getElementById('submit').disabled = true
@@ -152,6 +155,8 @@
         formAdd.idUser.value = user._id
         formAdd.name.value = user.name
         formAdd.com.value = user.comment
+        if (formAdd.name.value !== '') document.getElementById('submit').disabled = false
+        else document.getElementById('submit').disabled = true
         imgOut.src = user.photo
         formAdd.onsubmit = e => {
           e.preventDefault()
@@ -319,7 +324,7 @@
 
     let submit = async (form, type) => {
       const startData = /^data/
-      let photo = startData.test(imgOut.src) ? imgOut : undefined
+      let photo = startData.test(imgOut.src) ? imgOut.src : undefined
       try {
         if (type === "add") {
           await neDB.create(form.name.value, photo, form.com.value)
@@ -328,6 +333,7 @@
           await neDB.update(form.idUser.value, form.name.value, photo, form.com.value)
           await sendSnack('Membre mis à jour', 2500)
           diaUser.close()
+          createList()
         }
         form.name.value = ''
         form.com.value = ''

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, autoUpdater, dialog } = require('electron');
+const { app, BrowserWindow, Menu, shell } = require('electron');
 const isDev = require('electron-is-dev')
 const path = require('path')
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -63,10 +63,65 @@ const createWindow = () => {
   });
 };
 
+const exportData = () => {
+  
+}
+
+const importData = combine => {
+  if (combine) {
+
+  } else {
+
+  }
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow()
+  const template = [
+    {
+      label:'Base de données',
+      submenu: [
+        {
+          label: 'Exporter',
+          click: () => {
+            exportData()
+          }
+        },
+        {
+          label: 'Importer et remplacer',
+          click: () => {
+            importData(false)
+          }
+        },
+        {
+          label: 'Importer et combiner',
+          click: () => {
+            importData(true)
+          }
+        }
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo'},
+        { type:'separator'},
+        {role: 'cut'},
+        {role:'copy'},
+        {role: 'paste'},
+        {role: 'pasteandmatchstyle'},
+        {role: 'delete'},
+        {role:'selectall'}
+      ]
+    }
+  ]
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

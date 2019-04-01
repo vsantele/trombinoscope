@@ -4,7 +4,7 @@ require('dotenv').config()
 module.exports = {
     packagerConfig: {
       icon: path.resolve(__dirname, "src", "assets", "icons", "win", "logo.ico"),
-       ignore: ['data/*','.env', '.gitignore', 'document.pdf', 'log.txt', 'logo.png', 'todo.txt', 'logo.xcf', 'yarn-error.log']
+       ignore: ['data/', 'data/data.db','.env', '.gitignore', 'document.pdf', 'log.txt', 'logo.png', 'todo.txt', 'logo.xcf', 'yarn-error.log']
     },
     makers: [
       {

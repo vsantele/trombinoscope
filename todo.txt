@@ -13,4 +13,4 @@ Update:
 Delete:
   - lister tout et pouvoir supprimer OK
   - Ajout snackbar Reussi ou Raté
-  - Ajout dialog confirmation
+  - Ajout dialog confirmation ok 

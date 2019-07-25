@@ -15,6 +15,7 @@
 
 <body>
   <div class="parent">
+    <h5 style="text-decoration: underline">Gestion des Membres "A vos marques…prêts"</h5>
     <button id="btnAdd" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored ">Ajouter
       Membre</button>
     <br> <br>
@@ -32,7 +33,7 @@
           <li class="mdl-menu__item" data-val="Listes">Liste</li>
         </ul>
       </div>
-      <input type='submit' value='Générer' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+      <input type='submit' value='Sauvegarder' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
     </form>
     <br>
   </div>
@@ -71,10 +72,10 @@
       <form id='formAdd'>
         <input type="text" id="idUser" readonly style="display: none">
         <input type='file' id='fileElem' accept='image/*' style="display:none">
-        <button type='button' id='fileSelect' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Charger
+        <button type='button' id='fileSelect' class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">Charger
           Photo</button>
         <br>
-        <img src='' id='imgOut'> <br>
+        <img src='' id='imgOut' style="width: 100px; height: 100px; margin-top: 1em"> <br>
         <div class="mdl-textfield mdl-js-textfield">
           <input type='text' id='name' class="mdl-textfield__input" placeholder="Nom + Prénom">
           <!-- <label for='name' class="mdl-textfield__label">Nom</label> -->
@@ -105,10 +106,12 @@
       dialog,
       shell
     } = require('electron').remote
+    const ipcRenderer = require('electron').ipcRenderer
     const log = require('electron-log')
     const Cropper = require('cropperjs')
-    const neDB = require('./neDB')
+    // const neDB = require('./neDB')
     const pdf = require('./pdf')
+    const userIcon = require('./userIcon')
     var img = document.getElementById("img"), // Btn sélection photo
       fileElem = document.getElementById("fileElem"), // input photo
       fileSelect = document.getElementById('fileSelect'), //button charger photo
@@ -121,8 +124,8 @@
       btnList = document.getElementById('btnList'),
       list = document.getElementById('list'),
       listMembers = document.getElementById('listMembers'),
-      btnAdd = document.getElementById('btnAdd')
-    diaUser = document.getElementById('diaUser'),
+      btnAdd = document.getElementById('btnAdd'),
+      diaUser = document.getElementById('diaUser'),
       snackContainer = document.getElementById('snackbar')
     var cropper, editId;
     document.getElementById('name').oninput = e => {
@@ -147,6 +150,9 @@
       if (formAdd.name.value !== '') document.getElementById('submit').disabled = false
       else document.getElementById('submit').disabled = true
       if (type === 'add') {
+        imgOut.src = userIcon
+        formAdd.name.value = null
+        formAdd.com.value = null
         formAdd.onsubmit = e => {
           e.preventDefault()
           submit(e.target, type)
@@ -157,7 +163,7 @@
         formAdd.com.value = user.comment
         if (formAdd.name.value !== '') document.getElementById('submit').disabled = false
         else document.getElementById('submit').disabled = true
-        imgOut.src = user.photo
+        imgOut.src = user.photo !== undefined ? user.photo : userIcon
         formAdd.onsubmit = e => {
           e.preventDefault()
           submit(e.target, type)
@@ -167,8 +173,10 @@
     }
 
     var del = (id) => {
-      neDB.delId(id)
-      createList()
+      if (confirm("Êtes-vous sûr de vouloir supprimer ce membre?")) {
+        ipcRenderer.send('ne-delId', id)
+        createList()
+      }
     }
 
     const edit = user => {
@@ -233,17 +241,21 @@
       return li
     }
 
-    const createList = async () => {
+    const createList = async (users) => {
       try {
         listMembers.innerHTML = ''
-        const users = await neDB.readAll()
-        await users.forEach(user => {
-          listMembers.appendChild(createUser(user))
-        })
+        const users = await ipcRenderer.sendSync('ne-readAll')
+        if (users.length === 0) {
+          listMembers.innerHTML = 'Aucun membre pour le moment, pour en ajouter cliquez sur "Ajouter un membre"'
+        } else {
+          await users.forEach(user => {
+            listMembers.appendChild(createUser(user))
+          })
+        }
       } catch (error) {
         log.error('Erreur création liste membre')
         log.error(error)
-        sendSnack("Error Lecture", 2500)
+        sendSnack("Erreur Lecture", 2500)
       }
     }
 
@@ -268,18 +280,25 @@
       diaList.close()
     }
 
+    const closeModalUser = () => {
+      formAdd.name.value = null
+      formAdd.com.value = null
+      imgOut.src = '#'
+      diaUser.close()
+    }
+
     // When the user clicks anywhere outside of the modal, close it
     window.onclick = function (event) {
       if (event.target == diaList) {
         closeModalList()
       }
+      if (event.target == diaUser) {
+        closeModalUser()
+      }
     }
 
     btnCancelAdd.addEventListener('click', e => {
-      formAdd.name.value = null
-      formAdd.com.value = null
-      imgOut.removeAttribute('src')
-      diaUser.close()
+      closeModalUser()
     })
 
     fileElem.addEventListener('change', e => {
@@ -327,17 +346,19 @@
       let photo = startData.test(imgOut.src) ? imgOut.src : undefined
       try {
         if (type === "add") {
-          await neDB.create(form.name.value, photo, form.com.value)
+          // await neDB.create(form.name.value, photo, form.com.value)
+          await ipcRenderer.send('ne-create', {name: form.name.value, photo, com: form.com.value})
           await sendSnack('Membre Ajouté', 2500)
         } else if (type === "edit") {
-          await neDB.update(form.idUser.value, form.name.value, photo, form.com.value)
+          // await neDB.update(form.idUser.value, form.name.value, photo, form.com.value)
+          await ipcRenderer.send('ne-update',{id: form.idUser.value, name: form.name.value, photo, com: form.com.value})
           await sendSnack('Membre mis à jour', 2500)
           diaUser.close()
           createList()
         }
         form.name.value = ''
         form.com.value = ''
-        imgOut.src = ''
+        imgOut.src = userIcon
         if (formAdd.name.value !== '') document.getElementById('submit').disabled = false
         else document.getElementById('submit').disabled = true
       } catch (error) {
@@ -349,28 +370,45 @@
     }
 
     var formPDF = document.getElementById('tableau') // form générate pdf
-    formPDF.addEventListener('submit', async e => { // submit create pdf
+    formPDF.addEventListener('submit', async e => {
+      // submit create pdf
       e.preventDefault()
       try {
         const type = e.target.type.value
-        var chemin = dialog.showSaveDialog({
-          title: 'Sauvegarde du Fichier',
-          filters: [{
-            name: 'PDF',
-            extensions: ['pdf']
-          }]
-        })
-        if (chemin) {
-          const users = await neDB.readAll()
-          await pdf(users, type, chemin)
-          shell.showItemInFolder(chemin)
-        }
+        const users = await ipcRenderer.sendSync('ne-readAll')
+        ipcRenderer.send('printPDF', type, users)
       } catch (error) {
-        console.error(error)
-        log.error('Erreur création pdf')
+        log.error("Erreur génération pdf")
         log.error(error)
       }
+      // try {
+      //   var chemin = dialog.showSaveDialog({
+      //     title: 'Sauvegarde du Fichier',
+      //     filters: [{
+      //       name: 'PDF',
+      //       extensions: ['pdf']
+      //     }]
+      //   })
+      //   if (chemin) {
+      //     const users = await neDB.readAll()
+      //     await pdf(users, type, chemin)
+      //     shell.showItemInFolder(chemin)
+      //   }
+      // } catch (error) {
+      //   console.error(error)
+      //   log.error('Erreur création pdf')
+      //   log.error(error)
+      // }
     })
+
+    ipcRenderer.on('wrote-pdf', (event, arg) => {
+      console.log(arg)
+    })
+
+    ipcRenderer.on('sendSnack', (event, arg) => {
+      sendSnack(arg, 2500)
+    })
+
   </script>
   <script src='material/material.min.js'></script>
   <script src='material/material-select.min.js'></script>

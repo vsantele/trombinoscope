@@ -12,7 +12,7 @@ module.exports = {
         config: {
           name: "Trombinoscope",
           authors: "Victor Santelé",
-          iconUrl: path.resolve(__dirname, "src", "assets", "icons", "win", "logo.ico")
+          iconUrl: path.resolve(__dirname, "src", "assets", "icons", "ico", "logo.ico")
         }
       },
       {

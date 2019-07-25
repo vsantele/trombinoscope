@@ -1,11 +1,32 @@
 const pdfPrinter = require('pdfmake')
-const {
-  dialog
-} = require('electron').remote
 const path = require('path')
 const fs = require('fs')
 
 var fonts = {
+  Courier: {
+    normal: 'Courier',
+    bold: 'Courier-Bold',
+    italics: 'Courier-Oblique',
+    bolditalics: 'Courier-BoldOblique'
+  },
+  Helvetica: {
+    normal: 'Helvetica',
+    bold: 'Helvetica-Bold',
+    italics: 'Helvetica-Oblique',
+    bolditalics: 'Helvetica-BoldOblique'
+  },
+  Times: {
+    normal: 'Times-Roman',
+    bold: 'Times-Bold',
+    italics: 'Times-Italic',
+    bolditalics: 'Times-BoldItalic'
+  },
+  Symbol: {
+    normal: 'Symbol'
+  },
+  ZapfDingbats: {
+    normal: 'ZapfDingbats'
+  },
   Roboto: {
     normal: path.join(__dirname, 'fonts/Roboto/Roboto-Regular.ttf'),
     bold: path.join(__dirname, 'fonts/Roboto/Roboto-Bold.ttf'),
@@ -35,7 +56,7 @@ const card = user => {
 
 module.exports = async (users, type, chemin) => {
   if (chemin !== undefined) {
-    console.log("users: " + users)
+    // console.log("users: " + users)
     if (type === 'Grille') {
       const nbCol = 4
       const allUsers = users.map(user => {
@@ -89,8 +110,11 @@ module.exports = async (users, type, chemin) => {
 
       var docDefinition = {
         version: '1.3',
+        defaultStyle: {
+          font: 'Roboto'
+        },
         header: {
-          text: 'Liste',
+          text: 'Liste Membre',
           alignment: 'center'
         },
         content: [{
@@ -123,8 +147,11 @@ module.exports = async (users, type, chemin) => {
        user.comment]);
       var docDefinition = {
         version: '1.3',
+        defaultStyle: {
+          font: 'Roboto'
+        },
         header: {
-          text: 'Liste',
+          text: 'Liste Membre',
           alignment: 'center'
         },
         content: [{
@@ -139,6 +166,6 @@ module.exports = async (users, type, chemin) => {
     var printer = new pdfPrinter(fonts)
     var pdfDoc = printer.createPdfKitDocument(docDefinition)
     pdfDoc.pipe(fs.createWriteStream(chemin));
-    pdfDoc.end();
+    return pdfDoc.end();
   }
 }

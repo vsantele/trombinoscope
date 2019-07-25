@@ -1,6 +1,9 @@
 const Datastore = require('nedb');
+const {app} = require('electron')
 const path = require('path');
-const dbFolder = path.resolve(__dirname, '..', 'data')
+console.log('path :', app.getPath('userData'));
+// const dbFolder = path.resolve(__dirname, '..', 'data')
+const dbFolder = app.getPath('userData')
 const dbFile = path.join(dbFolder, 'data.db')
 
 const db = new Datastore({filename: dbFile, autoload: true});
@@ -32,7 +35,7 @@ const readAll = () => {
   return new Promise((resolve, reject)=> {
     db.find({}).sort({name: 1}).exec((err, docs)=> {
       if (err) reject(err)
-      console.log('docs :', docs);
+      // console.log('docs :', docs);
       resolve(docs)
     })
   })

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel='stylesheet' href="material/material.min.css">
+  <title>Grille</title>
+  <style>
+    @page {
+      size: A4 portrait;
+    }
+    body {
+      break-before: page;
+      width: 21cm;
+      height: 29.7cm; 
+    }
+    table {
+      border-collapse: collapse
+    }
+    table, td {
+      border: 1px solid black
+    }
+    td {
+      padding: 5px;
+      vertical-align: top
+    }
+    td.nom {
+      text-align: center;
+    }
+    span {
+      padding: 5px
+    }
+    img {
+      height: 100px;
+      width: 100px;
+    }
+    table.list {
+      table-layout: auto;
+      width: 100%;
+    }
+    .photo {
+      width: 4.5cm;  
+    }
+    .comment {
+      width: 15.3cm;
+      word-wrap: break-word; 
+    }
+  </style>
+</head>
+<body>
+  <h2 id='title' style="text-align: center; text-decoration: underline">Liste des Membres</h2>
+  <script>
+   const ipcRenderer = require('electron').ipcRenderer
+   const remote = require('electron').remote
+
+   ipcRenderer.on('printPDF', (event, type, users) => {
+     const generatePage = (type, users) => {
+      const table = document.createElement('table')
+      table.id = 'table'
+      if (type === "Grille") {
+          table.classList.add('grid')
+          const nbCol = 6
+          let tr = document.createElement('tr'), nb = 0
+          users.forEach((user, i) => {
+            const td = document.createElement('td')
+            td.style.width = "3.2cm"
+            const img = document.createElement('img')
+            img.src = user.photo
+            const span = document.createElement('span')
+            span.innerText = user.name
+            td.appendChild(img)
+            td.appendChild(document.createElement('br'))
+            td.appendChild(span)
+            td.classList.add('nom')
+            if (nb < nbCol) tr.appendChild(td)
+            else {
+              table.appendChild(tr)
+              nb = 0
+              tr = document.createElement('tr')
+              tr.appendChild(td)
+            }
+            nb++
+          })
+          if (tr.childElementCount !== 0) table.appendChild(tr)
+          return table
+        } else if (type === 'Liste') {
+          table.classList.add('list')
+          users.forEach((user) => {
+            let tr = document.createElement('tr')
+              let td1 = document.createElement('td')
+                let img = document.createElement('img')
+                  img.src = user.photo
+                td1.classList.add('photo')
+                td1.classList.add('nom')
+                td1.appendChild(img)
+                td1.appendChild(document.createElement('br'))
+                let span = document.createElement('span')
+                  span.innerText = user.name
+                td1.appendChild(span)
+              tr.appendChild(td1)
+              let td2 = document.createElement('td')
+                let p = document.createElement('div')
+                p.innerText = user.comment
+              td2.appendChild(p)
+              td2.classList.add('comment')
+              tr.appendChild(td2)
+            table.appendChild(tr)
+          })
+          return table
+        }
+    } 
+      const tab = document.getElementById('table')
+      if (tab !== null) document.body.removeChild(tab)
+     document.body.appendChild(generatePage(type, users))
+     ipcRenderer.send('readyToPrintPDF')
+   })
+   ipcRenderer.on('finish', () => {
+     var win = remote.getCurrentWindow()
+     win.close()
+   })
+  </script>
+</body>
+</html>

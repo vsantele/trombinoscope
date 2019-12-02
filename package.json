@@ -16,6 +16,10 @@
     "name": "Victor Santelé",
     "email": "Vic16@hotmail.be"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WolfVic/trombinoscope.git"
+  },
   "license": "MIT",
   "config": {
     "forge": "./forge.config.js"

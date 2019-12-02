@@ -347,11 +347,9 @@
       let photo = startData.test(imgOut.src) ? imgOut.src : undefined
       try {
         if (type === "add") {
-          // await neDB.create(form.name.value, photo, form.com.value)
           await ipcRenderer.send('ne-create', {name: form.name.value, photo, com: form.com.value})
           await sendSnack('Membre Ajouté', 2500)
         } else if (type === "edit") {
-          // await neDB.update(form.idUser.value, form.name.value, photo, form.com.value)
           await ipcRenderer.send('ne-update',{id: form.idUser.value, name: form.name.value, photo, com: form.com.value})
           await sendSnack('Membre mis à jour', 2500)
           diaUser.close()
@@ -382,24 +380,6 @@
         log.error("Erreur génération pdf")
         log.error(error)
       }
-      // try {
-      //   var chemin = dialog.showSaveDialog({
-      //     title: 'Sauvegarde du Fichier',
-      //     filters: [{
-      //       name: 'PDF',
-      //       extensions: ['pdf']
-      //     }]
-      //   })
-      //   if (chemin) {
-      //     const users = await neDB.readAll()
-      //     await pdf(users, type, chemin)
-      //     shell.showItemInFolder(chemin)
-      //   }
-      // } catch (error) {
-      //   console.error(error)
-      //   log.error('Erreur création pdf')
-      //   log.error(error)
-      // }
     })
 
     ipcRenderer.on('wrote-pdf', (event, arg) => {

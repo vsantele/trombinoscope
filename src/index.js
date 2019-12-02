@@ -73,7 +73,7 @@ const createWindow = () => {
 
 const dlLog = () => {
   log.log('Dl Log')
-  var logPath = dialog.showSaveDialog({
+  var logPath = dialog.showSaveDialogSync({
     title: 'Sauvegarde du Fichier log',
     filters: [{
       name: 'Text',

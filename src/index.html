@@ -52,10 +52,17 @@
     </div>
   </dialog>
 
-  <!-- Dialog List Users Delete -->
+  <!-- Dialog List Users Edit/Delete -->
   <dialog class="mdl-dialog" id="diaList" style="width: 40em">
     <h4 class="mdl-dialog__title">Liste des membres</h4>
     <div class="mdl-dialog__content">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="search">
+        <label class="mdl-textfield__label" for="search">Rechercher</label>
+      </div>
+        <button class="mdl-button mdl-js-button " id="clearSearch">
+            <i class="material-icons">clear</i>
+        </button>
       <ul id="listMembers" class="mdl-list">
 
       </ul>
@@ -111,7 +118,7 @@
     const Cropper = require('cropperjs')
     // const neDB = require('./neDB')
     const pdf = require('./pdf')
-    // const userIcon = require('./userIcon.png')
+    const userIcon = './userIcon.png'
     var img = document.getElementById("img"), // Btn sélection photo
       fileElem = document.getElementById("fileElem"), // input photo
       fileSelect = document.getElementById('fileSelect'), //button charger photo
@@ -126,7 +133,9 @@
       listMembers = document.getElementById('listMembers'),
       btnAdd = document.getElementById('btnAdd'),
       diaUser = document.getElementById('diaUser'),
-      snackContainer = document.getElementById('snackbar')
+      snackContainer = document.getElementById('snackbar'),
+      search = document.getElementById("search"),
+      clearSearch = document.getElementById("clearSearch")
     var cropper, editId;
     document.getElementById('name').oninput = e => {
       if (e.target.value !== '') document.getElementById('submit').disabled = false
@@ -242,14 +251,14 @@
       return li
     }
 
-    const createList = async (users) => {
+    const createList = async (filter = search.value) => {
       try {
         listMembers.innerHTML = ''
         const users = await ipcRenderer.sendSync('ne-readAll')
         if (users.length === 0) {
           listMembers.innerHTML = 'Aucun membre pour le moment, pour en ajouter cliquez sur "Ajouter un membre"'
         } else {
-          await users.forEach(user => {
+          await users.filter((user) => user.name.includes(filter)).forEach(user => {
             listMembers.appendChild(createUser(user))
           })
         }
@@ -278,6 +287,7 @@
     }
 
     var closeModalList = () => {
+      search.value = ''
       diaList.close()
     }
 
@@ -367,6 +377,14 @@
         sendSnack("Erreur enregistrement", 2500)
       }
     }
+
+    search.addEventListener("input", (e) => {
+      createList(e.target.value)
+    })
+    clearSearch.addEventListener("click", () => {
+      search.value = ''
+      createList()
+    })
 
     var formPDF = document.getElementById('tableau') // form générate pdf
     formPDF.addEventListener('submit', async e => {

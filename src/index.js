@@ -165,6 +165,9 @@ app.on('ready', () => {
           click: () => {
             shell.openExternal('mailto:vic16@hotmail.be?subject=[Trombinoscope]')
           }
+        },
+        {
+          'label': 'Version: ' + app.getVersion()
         }
       ]
     }

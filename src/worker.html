@@ -53,9 +53,7 @@
   <script>
    const ipcRenderer = require('electron').ipcRenderer
    const remote = require('electron').remote
-
-   ipcRenderer.on('printPDF', (event, type, users) => {
-     const generatePage = (type, users) => {
+   const generatePage = (type, users) => {
       const table = document.createElement('table')
       table.id = 'table'
       if (type === "Grille") {
@@ -83,7 +81,6 @@
             nb++
           })
           if (tr.childElementCount !== 0) table.appendChild(tr)
-          return table
         } else if (type === 'Liste') {
           table.classList.add('list')
           users.forEach((user) => {
@@ -107,9 +104,10 @@
               tr.appendChild(td2)
             table.appendChild(tr)
           })
-          return table
         }
+        return table
     } 
+   ipcRenderer.on('printPDF', (event, type, users) => {
       const tab = document.getElementById('table')
       if (tab !== null) document.body.removeChild(tab)
      document.body.appendChild(generatePage(type, users))

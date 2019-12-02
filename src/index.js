@@ -169,8 +169,8 @@ app.on('ready', () => {
       ]
     }
   ]
-  // const menu = Menu.buildFromTemplate(template)
-  // Menu.setApplicationMenu(menu)
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
 });
 
 // Quit when all windows are closed.
@@ -195,18 +195,18 @@ app.on('activate', () => {
 
 ipcMain.on('printPDF', async (event, type, users) => {
   try {
-    log.log('préparation print PDF')
-    workerWindow = new BrowserWindow({show: false})
+    log.log('preparation print PDF')
+    workerWindow = new BrowserWindow({show: false, webPreferences:{nodeIntegration: true}})
     // workerWindow.loadURL(`file://${__dirname}/worker.html`)
     // if(isDev) {
-    //   workerWindow.webContents.openDevTools()
+      // workerWindow.webContents.openDevTools()
     // } else {
     //   workerWindow.hide()
     // }
     workerWindow.on("closed", () => {
       workerWindow = null;
     });
-    workerWindow.loadURL(`file://${__dirname}/worker.html`)
+    await workerWindow.loadURL(`file://${__dirname}/worker.html`)
     workerWindow.on('ready-to-show', () => {
       workerWindow.webContents.send('printPDF', type, users)
     })
@@ -220,30 +220,21 @@ ipcMain.on('printPDF', async (event, type, users) => {
 })
 
 ipcMain.on('readyToPrintPDF', (event) => {
-  log.log('PDF Prêt')
+  log.log('PDF Pret')
   let pdfPath
-  if (isDev) {
-    pdfPath = path.join(os.tmpdir(), 'print.pdf')
-  } else {
-    pdfPath = dialog.showSaveDialog({
-      title: 'Sauvegarde du Fichier',
-      filters: [{
-        name: 'PDF',
-        extensions: ['pdf']
-      }]
-    })
-  }
+  pdfPath = dialog.showSaveDialogSync({
+    title: 'Sauvegarde du Fichier',
+    filters: [{
+      name: 'PDF',
+      extensions: ['pdf']
+    }]
+  })
   if (pdfPath) {
+    log.log(pdfPath)
     const win = BrowserWindow.fromWebContents(event.sender)
-    win.webContents.printToPDF({pageSize: 'A4', landscape: false, }, (error, data) => {
-      if(error) {
-        console.error(error.message)
-        log.error('Erreur Print PDF')
-        return log.error(error.message)
-      }
+    win.webContents.printToPDF({pageSize: 'A4', landscape: false, }).then((data) => {
       fs.writeFile(pdfPath, data, error => {
         if (error) {
-          console.error(error.message)
           mainWindow.webContents.send('sendSnack', 'Erreur sauvegarde PDF')
           log.error('Erreur Sauvegarde PDF')
           return log.error(error.message)
@@ -252,6 +243,11 @@ ipcMain.on('readyToPrintPDF', (event) => {
         shell.openExternal('file://'+pdfPath)
         event.sender.send('finish')
       })
+    }).catch(error => {
+      if(error) {
+        log.error('Erreur Print PDF')
+        return log.error(error.message)
+      }
     })
   }
 })

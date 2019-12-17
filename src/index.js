@@ -3,7 +3,7 @@ const isDev = require('electron-is-dev')
 const path = require('path')
 const fs = require('fs')
 const os = require('os')
-const neDB = require('./neDB')
+const neDB = require('./scripts/neDB')
 const log = require('electron-log')
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -172,8 +172,10 @@ app.on('ready', () => {
       ]
     }
   ]
-  const menu = Menu.buildFromTemplate(template)
-  Menu.setApplicationMenu(menu)
+  if (!isDev) {
+    const menu = Menu.buildFromTemplate(template)
+    Menu.setApplicationMenu(menu)
+  }
 });
 
 // Quit when all windows are closed.
@@ -202,7 +204,7 @@ ipcMain.on('printPDF', async (event, type, users) => {
     workerWindow = new BrowserWindow({show: false, webPreferences:{nodeIntegration: true}})
     // workerWindow.loadURL(`file://${__dirname}/worker.html`)
     // if(isDev) {
-      // workerWindow.webContents.openDevTools()
+    //   workerWindow.webContents.openDevTools()
     // } else {
     //   workerWindow.hide()
     // }
@@ -235,7 +237,7 @@ ipcMain.on('readyToPrintPDF', (event) => {
   if (pdfPath) {
     log.log(pdfPath)
     const win = BrowserWindow.fromWebContents(event.sender)
-    win.webContents.printToPDF({pageSize: 'A4', landscape: false, }).then((data) => {
+    win.webContents.printToPDF({pageSize: 'A4', landscape: false,printBackground: true }).then((data) => {
       fs.writeFile(pdfPath, data, error => {
         if (error) {
           mainWindow.webContents.send('sendSnack', 'Erreur sauvegarde PDF')

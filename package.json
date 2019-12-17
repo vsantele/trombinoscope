@@ -1,7 +1,7 @@
 {
   "name": "trombinoscope",
   "productName": "trombinoscope",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Création de liste de membre en format PDF",
   "main": "src/index.js",
   "scripts": {
@@ -25,13 +25,13 @@
     "forge": "./forge.config.js"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-font": "^16.0.0",
     "cropperjs": "^1.5.6",
     "dotenv": "^8.2.0",
     "electron-is-dev": "^1.1.0",
     "electron-log": "^3.0.9",
     "electron-squirrel-startup": "^1.0.0",
     "nedb": "^1.8.0",
-    "pdfmake": "^0.1.62",
     "update-electron-app": "^1.5.0"
   },
   "devDependencies": {
@@ -40,6 +40,6 @@
     "@electron-forge/maker-rpm": "6.0.0-beta.45",
     "@electron-forge/maker-squirrel": "6.0.0-beta.45",
     "@electron-forge/maker-zip": "6.0.0-beta.45",
-    "electron": "7.1.2"
+    "electron": "^7.1.4"
   }
 }

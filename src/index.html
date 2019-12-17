@@ -73,9 +73,9 @@
   </dialog>
 
   <!-- Dialog User Form -->
-  <dialog class="mdl-dialog" id="diaUser" style="width: 30em">
-    <h4 class="mdl-dialog__title">Edition Membre</h4>
-    <div class="mdl-dialog__content">
+  <dialog class="mdl-dialog" id="diaUser" style="width: 60em">
+    <h4 class="mdl-dialog__title" style="text-align: center;">Edition Membre</h4>
+    <div class="mdl-dialog__content" style="text-align: center;">
       <form id='formAdd'>
         <input type="text" id="idUser" readonly style="display: none">
         <input type='file' id='fileElem' accept='image/*' style="display:none">
@@ -92,10 +92,11 @@
           <label for='pre' class="mdl-textfield__label">Prénom</label>
         </div> -->
         <br>
-        <div class="mdl-textfield mdl-js-textfield">
-          <textarea type='text' id='com' class="mdl-textfield__input" rows="5" placeholder="Commentaire"></textarea>
+        <!-- <div class="mdl-textfield mdl-js-textfield"> -->
+          <!-- <textarea type='text' id='com' class="mdl-textfield__input" rows="5" placeholder="Commentaire"></textarea> -->
           <!-- <label for='com' class="mdl-textfield__label">Commentaire</label> -->
-        </div>
+        <!-- </div> -->
+        <div id="editor"></div>
         <br>
         <input type='submit' value='Valider' id="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"
           disabled>
@@ -116,8 +117,9 @@
     const ipcRenderer = require('electron').ipcRenderer
     const log = require('electron-log')
     const Cropper = require('cropperjs')
+    const ClassicEditor = require("./scripts/ckeditor.js")
     // const neDB = require('./neDB')
-    const pdf = require('./pdf')
+    const pdf = require('./scripts/pdf')
     const userIcon = './userIcon.png'
     var img = document.getElementById("img"), // Btn sélection photo
       fileElem = document.getElementById("fileElem"), // input photo
@@ -136,11 +138,75 @@
       snackContainer = document.getElementById('snackbar'),
       search = document.getElementById("search"),
       clearSearch = document.getElementById("clearSearch")
-    var cropper, editId;
+    var cropper, editId, editor;
     document.getElementById('name').oninput = e => {
       if (e.target.value !== '') document.getElementById('submit').disabled = false
       else document.getElementById('submit').disabled = true
     }
+
+  ClassicEditor
+      .create(document.querySelector('#editor'), {
+        fontColor: {
+            colors: [
+                {
+                    color: 'hsl(0, 0%, 0%)',
+                    label: 'Black'
+                },
+                {
+                    color: 'hsl(0, 75%, 60%)',
+                    label: 'Red'
+                },
+                {
+                    color: 'hsl(30, 75%, 60%)',
+                    label: 'Orange'
+                },
+                {
+                    color: 'hsl(60, 75%, 60%)',
+                    label: 'Yellow'
+                },
+                {
+                    color: 'hsl(90, 75%, 60%)',
+                    label: 'Light green'
+                },
+                {
+                    color: 'hsl(120, 75%, 60%)',
+                    label: 'Green'
+                },
+
+                // ...
+            ]
+        },
+        fontBackgroundColor: {
+            colors: [
+                {
+                    color: 'hsl(0, 75%, 60%)',
+                    label: 'Red'
+                },
+                {
+                    color: 'hsl(30, 75%, 60%)',
+                    label: 'Orange'
+                },
+                {
+                    color: 'hsl(60, 75%, 60%)',
+                    label: 'Yellow'
+                },
+                {
+                    color: 'hsl(90, 75%, 60%)',
+                    label: 'Light green'
+                },
+                {
+                    color: 'hsl(120, 75%, 60%)',
+                    label: 'Green'
+                },
+
+                // ...
+            ]
+        }
+      })
+      .then(edit => editor = edit)
+      .catch(error => {
+        log.error("Erreur Editeur: ", error)
+      });
 
     const sendSnack = (message, timeout, actionHandler, actionText) => {
       const data = {
@@ -162,7 +228,7 @@
         // imgOut.src = userIcon
         imgOut.src = './userIcon.png'
         formAdd.name.value = null
-        formAdd.com.value = null
+        editor.setData("");
         formAdd.onsubmit = e => {
           e.preventDefault()
           submit(e.target, type)
@@ -170,7 +236,7 @@
       } else if (type === 'edit') {
         formAdd.idUser.value = user._id
         formAdd.name.value = user.name
-        formAdd.com.value = user.comment
+        editor.setData(user.comment)
         if (formAdd.name.value !== '') document.getElementById('submit').disabled = false
         else document.getElementById('submit').disabled = true
         imgOut.src = user.photo !== undefined ? user.photo : userIcon
@@ -293,7 +359,7 @@
 
     const closeModalUser = () => {
       formAdd.name.value = null
-      formAdd.com.value = null
+      editor.setData("")
       imgOut.src = '#'
       diaUser.close()
     }
@@ -357,21 +423,20 @@
       let photo = startData.test(imgOut.src) ? imgOut.src : undefined
       try {
         if (type === "add") {
-          await ipcRenderer.send('ne-create', {name: form.name.value, photo, com: form.com.value})
+          await ipcRenderer.send('ne-create', {name: form.name.value, photo, com: editor.getData()})
           await sendSnack('Membre Ajouté', 2500)
         } else if (type === "edit") {
-          await ipcRenderer.send('ne-update',{id: form.idUser.value, name: form.name.value, photo, com: form.com.value})
+          await ipcRenderer.send('ne-update',{id: form.idUser.value, name: form.name.value, photo, com: editor.getData()})
           await sendSnack('Membre mis à jour', 2500)
           diaUser.close()
           createList()
         }
         form.name.value = ''
-        form.com.value = ''
+        editor.setData("")
         imgOut.src = "./userIcon.png"
         if (formAdd.name.value !== '') document.getElementById('submit').disabled = false
         else document.getElementById('submit').disabled = true
       } catch (error) {
-        console.error("submit: ", error)
         log.error('Erreur submit: ')
         log.error(error)
         sendSnack("Erreur enregistrement", 2500)
@@ -401,7 +466,7 @@
     })
 
     ipcRenderer.on('wrote-pdf', (event, arg) => {
-      console.log(arg)
+      log.log(arg)
     })
 
     ipcRenderer.on('sendSnack', (event, arg) => {

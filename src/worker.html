@@ -10,6 +10,11 @@
     @page {
       size: A4 portrait;
     }
+    @media print {
+      body {
+        -webkit-print-color-adjust: exact;
+      }
+    }
     body {
       break-before: page;
       width: 21cm;
@@ -19,17 +24,17 @@
       border-collapse: collapse
     }
     table, td {
-      border: 1px solid black
+      border: 1px solid black;
     }
     td {
       padding: 5px;
-      vertical-align: top
+      vertical-align: top;
     }
     td.nom {
       text-align: center;
     }
     span {
-      padding: 5px
+      padding: 5px;
     }
     img {
       height: 100px;
@@ -46,6 +51,40 @@
       width: 15.3cm;
       word-wrap: break-word; 
     }
+    .black {
+      color: hsl(0, 0%, 0%) !important;
+    }
+    .red {
+      color: rgb(255,0,0) !important;
+    }
+    .orange {
+      color: hsl(30, 75%, 60%) !important;
+    }
+    .yellow {
+      color: hsl(60, 75%, 60%) !important;
+    }
+    .lightGreen {
+      color: hsl(90, 75%, 60%) !important;
+    }
+    .green {
+      color: hsl(120, 75%, 60%) !important;
+    }
+    .bgRed {
+      background-color: hsl(0, 75%, 60%) !important;
+    }
+    .bgOrange {
+      background-color: hsl(30, 75%, 60%) !important;
+    }
+    .bgYellow {
+      background-color: hsl(60, 75%, 60%) !important;
+    }
+    .bgLightGreen {
+      background-color: hsl(90, 75%, 60%) !important;
+    }
+    .bgGreen {
+      background-color: hsl(120, 75%, 60%) !important;
+    }
+
   </style>
 </head>
 <body>
@@ -53,6 +92,21 @@
   <script>
    const ipcRenderer = require('electron').ipcRenderer
    const remote = require('electron').remote
+   const fixColor = (com) => {
+     com = com.replace(/style="color:hsl\(0,0%,0%\);"/g, 'class="black"')
+     com = com.replace(/style="color:hsl\(0,75%,60%\);"/g, 'class="red"')
+     com = com.replace(/style="color:hsl\(30,75%,60%\);"/g, 'class="orange"')
+     com = com.replace(/style="color:hsl\(60,75%,60%\);"/g, 'class="yellow"')
+     com = com.replace(/style="color:hsl\(90,75%,60%\);"/g, 'class="lightGreen"')
+     com = com.replace(/style="color:hsl\(120,75%,60%\);"/g, 'class="green"')
+     com = com.replace(/style="background-color:hsl\(0,0%,0%\);"/g, 'class="bgBlack"')
+     com = com.replace(/style="background-color:hsl\(0,75%,60%\);"/g, 'class="bgRed"')
+     com = com.replace(/style="background-color:hsl\(30,75%,60%\);"/g, 'class="bgOrange"')
+     com = com.replace(/style="background-color:hsl\(60,75%,60%\);"/g, 'class="bgYellow"')
+     com = com.replace(/style="background-color:hsl\(90,75%,60%\);"/g, 'class="bgLightGreen"')
+     com = com.replace(/style="background-color:hsl\(120,75%,60%\);"/g, 'class="bgGreen"')
+    return com
+   }
    const generatePage = (type, users) => {
       const table = document.createElement('table')
       table.id = 'table'
@@ -63,11 +117,13 @@
           users.forEach((user, i) => {
             const td = document.createElement('td')
             td.style.width = "3.2cm"
-            const img = document.createElement('img')
-            img.src = user.photo
+            if (user.photo !== undefined) {
+              const img = document.createElement('img')
+              img.src = user.photo
+              td.appendChild(img)
+            }
             const span = document.createElement('span')
             span.innerText = user.name
-            td.appendChild(img)
             td.appendChild(document.createElement('br'))
             td.appendChild(span)
             td.classList.add('nom')
@@ -98,7 +154,7 @@
               tr.appendChild(td1)
               let td2 = document.createElement('td')
                 let p = document.createElement('div')
-                p.innerText = user.comment
+                p.innerHTML = fixColor(user.comment)
               td2.appendChild(p)
               td2.classList.add('comment')
               tr.appendChild(td2)

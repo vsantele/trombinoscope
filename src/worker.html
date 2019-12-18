@@ -117,11 +117,9 @@
           users.forEach((user, i) => {
             const td = document.createElement('td')
             td.style.width = "3.2cm"
-            if (user.photo !== undefined) {
-              const img = document.createElement('img')
-              img.src = user.photo
-              td.appendChild(img)
-            }
+            const img = document.createElement('img')
+            img.src = user.photo
+            td.appendChild(img)
             const span = document.createElement('span')
             span.innerText = user.name
             td.appendChild(document.createElement('br'))

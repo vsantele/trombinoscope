@@ -1,7 +1,6 @@
 const Datastore = require('nedb');
 const {app} = require('electron')
 const path = require('path');
-console.log('path :', app.getPath('userData'));
 // const dbFolder = path.resolve(__dirname, '..', 'data')
 const dbFolder = app.getPath('userData')
 const dbFile = path.join(dbFolder, 'data.db')

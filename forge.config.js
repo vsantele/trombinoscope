@@ -13,7 +13,9 @@ module.exports = {
         config: {
           name: "Trombinoscope",
           authors: "Victor Santelé",
-          iconUrl: path.resolve(__dirname, "src", "assets", "icons", "ico", "logo.ico")
+          iconUrl: path.resolve(__dirname, "src", "assets", "icons", "ico", "logo.ico"),
+          remoteRelases:'https://github.com/wolfvic/trombinoscope',
+          remoteToken: process.env.GITHUB_TOKEN
         }
       },
       {

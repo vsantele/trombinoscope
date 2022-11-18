@@ -10,7 +10,7 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
   app.quit();
 }
 require('update-electron-app')({
-  repo: "wolfvic/trombinoscope",
+  repo: "vsantele/trombinoscope",
   logger: log
 })
 // this should be placed at top of main.js to handle setup events quickly

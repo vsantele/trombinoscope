@@ -152,7 +152,7 @@ const dlLog = () => {
       if (err) {
         console.error('Erreur dl Log')
         console.error(err)
-        log.error('Erreur dl Log') 
+        log.error('Erreur dl Log')
         log.error(err)
         mainWindow.webContents.send('sendSnack','Erreur sauvegarde log')
       }
@@ -160,15 +160,63 @@ const dlLog = () => {
   }
 }
 
-const exportData = () => {
-  
+const exportData = async () => {
+  var exportPath = dialog.showSaveDialogSync({
+    title: "Sauvegarde du fichier d'exportation",
+    defaultPath: `export-${new Date().toISOString().slice(0, 10) }`,
+    filters: [{
+      name:'Fichier JSON',
+      extensions: ['json']
+    }]
+  })
+  if (exportPath) {
+    var data = await neDB.readAll()
+    fs.writeFile(exportPath, JSON.stringify(data), (err) => {
+      if (err) {
+        log.error('Erreur export')
+        log.error(err)
+        mainWindow.webContents.send('sendSnack', 'Erreur sauvegarde export')
+      } else {
+        mainWindow.webContents.send('sendSnack', 'Exportation réussie')
+      }
+    })
+  }
 }
 
-const importData = combine => {
-  if (combine) {
+const importData = async combine => {
+  var importPath = dialog.showOpenDialogSync({
+    title: "Sauvegarde du fichier d'exportation",
+    filters: [{
+      name: 'Fichier JSON',
+      extensions: ['json']
+    }],
+    properties: ['openFile']
+  })
+  if (importPath && importPath.length > 0) {
+    fs.readFile(importPath[0], async (err, dataStr) => {
+      if (err) {
+        log.error('Erreur importation')
+        log.error(err)
+        mainWindow.webContents.send('sendSnack', 'Erreur importation fichier')
+        return;
+      }
+      if (!combine) {
+        const res = dialog.showMessageBoxSync({
+          type: 'warning',
+          buttons: ['Annuler', 'Continuer'],
+          title: 'Importation',
+          message: 'Voulez-vous vraiment supprimer les données existantes?',
+        })
+        if (res == 0) return;
 
-  } else {
-
+        const data = await neDB.readAll()
+        const ids = data.map(d => d._id)
+        neDB.delIds(ids)
+      }
+      const data = JSON.parse(dataStr)
+      data.forEach(d => neDB.create(d.name, d.photo, d.comment))
+      mainWindow.webContents.send('sendSnack', 'Importation réussie')
+    })
   }
 }
 
@@ -178,32 +226,29 @@ const importData = combine => {
 app.on('ready', () => {
   createWindow()
   const template = [
-    // {
-    //   label:'Base de données',
-    //   submenu: [
-    //     {
-    //       label: 'Exporter',
-    //       click: () => {
-    //         exportData()
-    //       },
-    //       enabled: false
-    //     },
-    //     {
-    //       label: 'Importer et remplacer',
-    //       click: () => {
-    //         importData(false)
-    //       },
-    //       enabled: false
-    //     },
-    //     {
-    //       label: 'Importer et combiner',
-    //       click: () => {
-    //         importData(true)
-    //       },
-    //       enabled: false
-    //     }
-    //   ]
-    // },
+    {
+      label:'File',
+      submenu: [
+        {
+          label: 'Exporter',
+          click: () => {
+            exportData()
+          }
+        },
+        {
+          label: 'Importer et remplacer',
+          click: () => {
+            importData(false)
+          }
+        },
+        {
+          label: 'Importer et combiner',
+          click: () => {
+            importData(true)
+          }
+        }
+      ]
+    },
     {
       label: 'Edit',
       submenu: [
@@ -282,7 +327,7 @@ ipcMain.on('printPDF', async (event, type, users) => {
     workerWindow.on('ready-to-show', () => {
       workerWindow.webContents.send('printPDF', type, users)
     })
-    
+
   } catch (error) {
     log.error('Erreur ouverture worker')
     log.error(error)
@@ -330,7 +375,7 @@ ipcMain.on('ne-delId', async (event, id) => {
     log.log('Suppression id: ', id)
   } catch (error) {
     log.error('Erreur Del Id')
-    log.error(error) 
+    log.error(error)
     event.sender.send('sendSnack', 'Erreur Suppression Membre')
   }
 })
